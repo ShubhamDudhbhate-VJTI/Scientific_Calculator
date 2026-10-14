@@ -57,26 +57,23 @@ public:
     bool is_square() const { return rows_ == cols_; }
     bool is_symmetric(double tolerance = 1e-10) const;
 
+    // Helper struct for LU decomposition with pivoting
+    struct LUResult {
+        Matrix L;
+        Matrix U;
+        std::vector<size_t> pivots;
+        
+        // Constructor to initialize matrices with size n
+        LUResult(size_t n) : L(Matrix::identity(n)), U(n, n), pivots(n) {}
+    };
+
 private:
     size_t rows_;
     size_t cols_;
     std::vector<double> data_;  // Row-major storage
-
-    // Forward declaration for helper struct
-    struct LUResult;
     
     // Helper for rank computation
     int rank_from_lu(const LUResult& lu, double tolerance) const;
-};
-
-// Helper for LU decomposition (defined after Matrix is complete)
-struct Matrix::LUResult {
-    Matrix L;
-    Matrix U;
-    std::vector<size_t> pivots;
-    
-    // Constructor to initialize matrices with size n
-    LUResult(size_t n) : L(Matrix::identity(n)), U(n, n), pivots(n) {}
 };
 
 // Free functions for parallel operations
