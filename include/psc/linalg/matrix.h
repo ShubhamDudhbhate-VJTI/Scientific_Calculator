@@ -10,6 +10,16 @@
 namespace psc {
 namespace linalg {
 
+// Forward declaration
+class Matrix;
+
+// Helper for LU decomposition (defined outside class to avoid incomplete type)
+struct LUResult {
+    Matrix L;
+    Matrix U;
+    std::vector<size_t> pivots;
+};
+
 class Matrix {
 public:
     // Constructors
@@ -61,12 +71,6 @@ private:
     size_t cols_;
     std::vector<double> data_;  // Row-major storage
 
-    // Helper for LU decomposition
-    struct LUResult {
-        Matrix L;
-        Matrix U;
-        std::vector<size_t> pivots;
-    };
     LUResult lu_with_pivoting() const;
 
     // Helper for rank computation

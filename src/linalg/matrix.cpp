@@ -543,6 +543,7 @@ Matrix multiply_tiled(const Matrix& A, const Matrix& B, size_t tile_size, int th
 }
 
 std::pair<Matrix, Matrix> lu_decomposition(const Matrix& A, int threads) {
+    (void)threads;  // Parameter reserved for future parallel implementation
     // For now, use serial LU decomposition
     // Parallel LU is complex and requires careful synchronization
     return A.lu_decomposition();
