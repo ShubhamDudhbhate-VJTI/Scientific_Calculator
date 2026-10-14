@@ -40,7 +40,12 @@ TEST(Hello, MachineInfoMentionsProject) {
 }
 
 TEST(Hello, ParallelForReduction) {
-#ifdef _OPENMP
+#if defined(__SANITIZE_THREAD__)
+  // TSan does not instrument libgomp reductions. Colab (GCC 13.3 + libgomp)
+  // reported a stack race on this loop even though the test result was 5050.
+  // Skip under TSan so a real race in project code is not hidden in the noise.
+  GTEST_SKIP() << "OpenMP reduction is not TSan-clean with libgomp; skipped under ThreadSanitizer.";
+#elif defined(_OPENMP)
   int sum = 0;
 #pragma omp parallel for reduction(+ : sum)
   for (int i = 1; i <= 100; ++i) {
