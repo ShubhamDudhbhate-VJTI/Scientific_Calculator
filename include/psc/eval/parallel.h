@@ -2,15 +2,13 @@
 
 #include <vector>
 #include <string>
-#include <functional>
-#include <memory>
 
 namespace psc {
-namespace eval {
 
-// Forward declarations
-class EvalContext;
-class ASTNode;
+struct Expr;
+struct EvalContext;
+
+namespace eval {
 
 // Parallel batch evaluation
 // Evaluates multiple expressions with different variable values in parallel

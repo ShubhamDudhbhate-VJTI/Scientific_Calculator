@@ -13,7 +13,7 @@ BatchEvalResult batch_eval_x(const std::string& expr, const std::vector<double>&
     result.errors.resize(x_values.size(), false);
     
     // Parse expression once
-    auto ast = parse(expr);
+    auto ast = parse_expression(expr);
     if (!ast) {
         for (size_t i = 0; i < x_values.size(); ++i) {
             result.errors[i] = true;
@@ -24,9 +24,9 @@ BatchEvalResult batch_eval_x(const std::string& expr, const std::vector<double>&
     #pragma omp parallel for num_threads(threads) schedule(dynamic)
     for (size_t i = 0; i < x_values.size(); ++i) {
         try {
-            EvalContext local_ctx(ctx);
-            local_ctx.set_variable("x", x_values[i]);
-            result.values[i] = evaluate(ast, local_ctx);
+            EvalContext local_ctx = ctx;
+            local_ctx.variables["x"] = x_values[i];
+            result.values[i] = evaluate(*ast, local_ctx);
         } catch (...) {
             result.errors[i] = true;
         }
@@ -41,22 +41,22 @@ BatchEvalResult batch_eval_exprs(const std::vector<std::string>& exprs, EvalCont
     result.errors.resize(exprs.size(), false);
     
     // Parse all expressions first
-    std::vector<std::shared_ptr<ASTNode>> asts;
+    std::vector<std::unique_ptr<Expr>> asts;
     for (const auto& expr : exprs) {
-        auto ast = parse(expr);
+        auto ast = parse_expression(expr);
         if (!ast) {
             for (size_t i = 0; i < exprs.size(); ++i) {
                 result.errors[i] = true;
             }
             return result;
         }
-        asts.push_back(ast);
+        asts.push_back(std::move(ast));
     }
     
     #pragma omp parallel for num_threads(threads) schedule(dynamic)
     for (size_t i = 0; i < exprs.size(); ++i) {
         try {
-            result.values[i] = evaluate(asts[i], ctx);
+            result.values[i] = evaluate(*asts[i], ctx);
         } catch (...) {
             result.errors[i] = true;
         }
@@ -72,7 +72,7 @@ BatchEvalResult param_sweep(const std::string& expr, const std::string& param_na
     result.errors.resize(param_values.size(), false);
     
     // Parse expression once
-    auto ast = parse(expr);
+    auto ast = parse_expression(expr);
     if (!ast) {
         for (size_t i = 0; i < param_values.size(); ++i) {
             result.errors[i] = true;
@@ -83,10 +83,10 @@ BatchEvalResult param_sweep(const std::string& expr, const std::string& param_na
     #pragma omp parallel for num_threads(threads) schedule(dynamic)
     for (size_t i = 0; i < param_values.size(); ++i) {
         try {
-            EvalContext local_ctx(ctx);
-            local_ctx.set_variable("x", x);
-            local_ctx.set_variable(param_name, param_values[i]);
-            result.values[i] = evaluate(ast, local_ctx);
+            EvalContext local_ctx = ctx;
+            local_ctx.variables["x"] = x;
+            local_ctx.variables[param_name] = param_values[i];
+            result.values[i] = evaluate(*ast, local_ctx);
         } catch (...) {
             result.errors[i] = true;
         }
