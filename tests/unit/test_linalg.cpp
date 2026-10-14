@@ -321,7 +321,7 @@ TEST_F(MatrixTest, LUDecomposition) {
     A(2, 0) = -4; A(2, 1) = -2; A(2, 2) = 8;
     
     // Get full LU result with pivots
-    auto lu = A.lu_with_pivoting();
+    auto lu = A.lu_with_pivoting();  // Returns linalg::LUResult
     
     // Check that L is lower triangular with ones on diagonal
     for (size_t i = 0; i < 3; ++i) {

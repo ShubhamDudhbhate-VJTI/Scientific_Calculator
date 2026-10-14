@@ -10,6 +10,19 @@
 namespace psc {
 namespace linalg {
 
+// Forward declaration
+class Matrix;
+
+// Helper struct for LU decomposition with pivoting (defined outside Matrix to avoid incomplete type)
+struct LUResult {
+    Matrix L;
+    Matrix U;
+    std::vector<size_t> pivots;
+    
+    // Constructor to initialize matrices with size n
+    LUResult(size_t n);
+};
+
 class Matrix {
 public:
     // Constructors
@@ -43,7 +56,7 @@ public:
     double determinant() const;
     Matrix inverse() const;
     std::pair<Matrix, Matrix> lu_decomposition() const;
-    LUResult lu_with_pivoting() const;  // Returns L, U, and pivot information
+    linalg::LUResult lu_with_pivoting() const;  // Returns L, U, and pivot information
     Matrix solve(const Matrix& b) const;  // Solve Ax = b
     int rank(double tolerance = 1e-10) const;
 
@@ -57,23 +70,13 @@ public:
     bool is_square() const { return rows_ == cols_; }
     bool is_symmetric(double tolerance = 1e-10) const;
 
-    // Helper struct for LU decomposition with pivoting
-    struct LUResult {
-        Matrix L;
-        Matrix U;
-        std::vector<size_t> pivots;
-        
-        // Constructor to initialize matrices with size n
-        LUResult(size_t n) : L(Matrix::identity(n)), U(n, n), pivots(n) {}
-    };
-
 private:
     size_t rows_;
     size_t cols_;
     std::vector<double> data_;  // Row-major storage
     
     // Helper for rank computation
-    int rank_from_lu(const LUResult& lu, double tolerance) const;
+    int rank_from_lu(const linalg::LUResult& lu, double tolerance) const;
 };
 
 // Free functions for parallel operations
@@ -89,6 +92,9 @@ Matrix multiply_tiled(const Matrix& A, const Matrix& B, size_t tile_size = 64, i
 std::pair<Matrix, Matrix> lu_decomposition(const Matrix& A, int threads = 1);
 
 } // namespace parallel
+
+// LUResult constructor implementation (requires Matrix to be complete)
+inline LUResult::LUResult(size_t n) : L(Matrix::identity(n)), U(n, n), pivots(n) {}
 
 } // namespace linalg
 } // namespace psc

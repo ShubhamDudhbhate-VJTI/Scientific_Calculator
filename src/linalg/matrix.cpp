@@ -248,14 +248,14 @@ Matrix Matrix::inverse() const {
     return inv;
 }
 
-Matrix::LUResult Matrix::lu_with_pivoting() const {
+linalg::LUResult Matrix::lu_with_pivoting() const {
     if (!is_square()) {
         throw std::invalid_argument("LU decomposition requires a square matrix");
     }
     
     size_t n = rows_;
     Matrix A = *this;  // Working copy
-    LUResult result(n);  // Constructor initializes L, U, and pivots
+    linalg::LUResult result(n);  // Constructor initializes L, U, and pivots
     
     for (size_t i = 0; i < n; ++i) {
         result.pivots[i] = i;
@@ -370,7 +370,7 @@ Matrix Matrix::solve(const Matrix& b) const {
     return x;
 }
 
-int Matrix::rank_from_lu(const LUResult& lu, double tolerance) const {
+int Matrix::rank_from_lu(const linalg::LUResult& lu, double tolerance) const {
     size_t n = rows_;
     int rank = 0;
     
