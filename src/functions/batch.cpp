@@ -20,6 +20,9 @@ void run_batch(const double* in, double* out, std::size_t n, const ExecOptions& 
     return;
   }
 #ifdef _OPENMP
+  // Each thread writes a distinct out[i]. The parallel-for has an implicit
+  // join/barrier before this function returns (OpenMP spec). ThreadSanitizer
+  // does not instrument libgomp, so TSan tests skip the parallel batch check.
 #pragma omp parallel for num_threads(threads) schedule(static)
   for (std::ptrdiff_t i = 0; i < static_cast<std::ptrdiff_t>(n); ++i) {
     out[static_cast<std::size_t>(i)] = fn(in[static_cast<std::size_t>(i)], b, iters);

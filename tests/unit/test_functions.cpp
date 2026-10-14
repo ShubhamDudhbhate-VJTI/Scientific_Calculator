@@ -44,6 +44,10 @@ TEST(Functions, CordicAtan) {
 }
 
 TEST(Functions, BatchSerialMatchesParallel) {
+#if defined(__SANITIZE_THREAD__)
+  GTEST_SKIP() << "TSan does not see libgomp's barrier after parallel for; "
+                  "main-thread reads of out[] look like a race. Release builds still run this test.";
+#endif
   const std::size_t n = 4096;
   std::vector<double> in(n);
   for (std::size_t i = 0; i < n; ++i) {
