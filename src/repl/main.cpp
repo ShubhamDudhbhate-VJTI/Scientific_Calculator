@@ -2,6 +2,7 @@
 #include "psc/common/error.hpp"
 #include "psc/common/exec.hpp"
 #include "psc/common/machine_info.hpp"
+#include "psc/calculus/integrate.hpp"
 #include "psc/eval/eval.hpp"
 
 #include <chrono>
@@ -26,6 +27,7 @@ void print_help() {
       << "  mode deg|rad         Angle mode for trig functions\n"
       << "  backend std|taylor|cordic   Elementary-function implementation\n"
       << "  timing on|off        Print elapsed time after each expression\n"
+      << "  integrate <expr> <a> <b> [--method simpson|trap|gauss5|adaptive|mc] [--n N] [--tol T]\n"
       << "  quit                 Exit\n\n"
       << "Any other line is an expression, e.g. 3 + 4 * (2 - 1)^2  or  sin(30) after mode deg.\n"
       << "Default backend is std (C++ library). Taylor/CORDIC are software loops, not FPGA.\n"
@@ -159,6 +161,53 @@ int main(int argc, char** argv) {
           throw psc::CalcError("usage: backend std|taylor|cordic");
         }
         std::cout << "backend=" << psc::backend_name(ctx.backend) << "\n";
+      } else if (parts[0] == "integrate") {
+        psc::QuadOptions q;
+        q.exec = ctx.exec;
+        q.exec.parallel_cutoff = 256;
+        std::vector<std::string> pos;
+        for (std::size_t i = 1; i < parts.size(); ++i) {
+          if (parts[i] == "--method" && i + 1 < parts.size()) {
+            q.method = psc::parse_quad_method(parts[++i]);
+          } else if (parts[i] == "--n" && i + 1 < parts.size()) {
+            q.n = std::stoi(parts[++i]);
+          } else if (parts[i] == "--tol" && i + 1 < parts.size()) {
+            q.tol = std::stod(parts[++i]);
+          } else if (parts[i] == "--samples" && i + 1 < parts.size()) {
+            q.samples = static_cast<std::size_t>(std::stoull(parts[++i]));
+          } else {
+            pos.push_back(parts[i]);
+          }
+        }
+        if (pos.size() < 3) {
+          throw psc::CalcError("usage: integrate <expr> <a> <b> [--method ...] [--n N]");
+        }
+        const double bnd_b = std::stod(pos.back());
+        pos.pop_back();
+        const double bnd_a = std::stod(pos.back());
+        pos.pop_back();
+        std::string expr;
+        for (std::size_t i = 0; i < pos.size(); ++i) {
+          if (i) {
+            expr += " ";
+          }
+          expr += pos[i];
+        }
+        psc::EvalContext local = ctx;
+        auto f = [&](double x) {
+          local.variables["x"] = x;
+          return psc::evaluate_string(expr, local);
+        };
+        const auto t0 = std::chrono::steady_clock::now();
+        const double v = psc::integrate_1d(f, bnd_a, bnd_b, q);
+        const auto t1 = std::chrono::steady_clock::now();
+        const double seconds = std::chrono::duration<double>(t1 - t0).count();
+        std::cout << std::setprecision(15) << v << "  [" << psc::quad_method_name(q.method) << "]\n";
+        if (timing) {
+          std::cout << "time_s=" << std::setprecision(6) << seconds
+                    << " mode=" << psc::mode_name(ctx.exec.mode)
+                    << " threads=" << actual_threads << "\n";
+        }
       } else if (parts[0] == "mode") {
         if (parts.size() != 2) {
           throw psc::CalcError("usage: mode serial|parallel|deg|rad");

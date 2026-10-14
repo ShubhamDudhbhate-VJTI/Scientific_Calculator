@@ -13,8 +13,8 @@ Statuses: Not Started | In Progress | Implemented | Tested | Blocked
 | P1-notebooks | Colab 00–04 notebooks | Implemented |
 | P1-colab-run | Student runs 00+01 on Colab | Tested |
 | P2-parser | Tokenizer, shunting-yard, AST, serial eval | Tested |
-| P3-functions | Taylor + CORDIC + batch OpenMP | Implemented (TSan skip on OpenMP batch test pending re-run) |
-| P4-integrate | Serial + parallel quadrature | Not Started |
+| P3-functions | Taylor + CORDIC + batch OpenMP | Tested |
+| P4-integrate | Serial + parallel quadrature | Implemented |
 | P5-diff | Finite differences + Dual AD | Not Started |
 | P6-linalg | Matrices, tiled mul, LU | Not Started |
 | P7-solvers | Roots + ODE ensemble | Not Started |

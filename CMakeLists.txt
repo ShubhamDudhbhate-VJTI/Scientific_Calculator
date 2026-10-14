@@ -52,6 +52,7 @@ add_library(psc STATIC
   src/functions/cordic.cpp
   src/functions/elem.cpp
   src/functions/batch.cpp
+  src/calculus/integrate.cpp
 )
 target_include_directories(psc PUBLIC ${CMAKE_SOURCE_DIR}/include)
 target_link_libraries(psc PUBLIC OpenMP::OpenMP_CXX)
@@ -81,6 +82,7 @@ add_executable(psc_tests
   tests/unit/test_parser.cpp
   tests/unit/test_eval.cpp
   tests/unit/test_functions.cpp
+  tests/unit/test_integrate.cpp
 )
 target_link_libraries(psc_tests PRIVATE psc GTest::gtest_main)
 add_test(NAME psc_tests COMMAND psc_tests)

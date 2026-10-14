@@ -33,3 +33,11 @@ Brent's lemma is still Phase 9.
 **Parallel:** `batch_sin` / `batch_cos` / `batch_exp` / `batch_ln` with `parallel for` when `n >= parallel_cutoff`. Independent outputs, no shared accumulators.
 
 **Not parallel:** a 40-term Taylor sum (too small; cutoff 256).
+
+## Integration (Phase 4)
+
+**Serial:** composite trapezoid (O(h^2)), Simpson 1/3 (O(h^4), even panels; odd n is rounded up), Gauss–Legendre orders 2–5 on `n` subintervals, adaptive Simpson with `|S_left+S_right-S|/15 <= tol`, Monte Carlo.
+
+**Parallel:** panel loops use `reduction(+:sum)`. Adaptive uses OpenMP tasks on subintervals (global `tol` split in half). 2D/3D: outer 1D is parallel, inner is serial (no nested OpenMP). Monte Carlo: one `mt19937` per thread, seed `seed + tid*997`.
+
+**Tests:** ∫ 4/(1+x²) dx on [0,1] = π, ∫ sin x on [0,π] = 2, ∫ exp(-x²) on [0,1] vs erf.
