@@ -16,7 +16,7 @@ Statuses: Not Started | In Progress | Implemented | Tested | Blocked
 | P3-functions | Taylor + CORDIC + batch OpenMP | Tested |
 | P4-integrate | Serial + parallel quadrature | Tested |
 | P5-diff | Finite differences + Dual AD | Implemented |
-| P6-linalg | Matrices, tiled mul, LU | Not Started |
+| P6-linalg | Matrices, tiled mul, LU | In Progress |
 | P7-solvers | Roots + ODE ensemble | Not Started |
 | P8-bigint | Limb integers + stats | Not Started |
 | P9-evalpar | DAG tasks + batch eval | Not Started |

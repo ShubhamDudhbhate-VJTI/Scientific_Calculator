@@ -13,7 +13,8 @@ College project: a scientific calculator whose heavy operations are implemented 
 | Taylor / CORDIC + batch OpenMP | **Tested** on Colab (TSan pass; OpenMP tests skipped under TSan) |
 | Integration (trap/Simpson/Gauss/adaptive/MC) | **Tested** on Colab |
 | Forward AD + finite differences | Implemented (push and re-run notebook 01) |
-| Matrices, solvers, bignum | Not Started |
+| Matrices (mul variants, LU, inverse, solve) | In Progress (push and re-run notebook 01) |
+| Solvers, bignum | Not Started |
 | CUDA | Not Started (`-DUSE_CUDA=ON` rejected until Phase 10b) |
 | Benchmarks | Not Started (no CSV timings) |
 
