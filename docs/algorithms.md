@@ -81,7 +81,7 @@ Brent's lemma is still Phase 9.
 **Tests:**
 - A × I = A
 - A × A⁻¹ ≈ I (within 1e-9)
-- LU: A = L × U (L lower triangular with ones, U upper triangular)
+- LU: PA = LU where P is permutation from partial pivoting (L lower triangular with ones, U upper triangular)
 - Solve: A × x = b verified by substitution
 - Determinant of 2×2 matches formula, Iₙ has det=1
 - Singular matrices detected and throw
