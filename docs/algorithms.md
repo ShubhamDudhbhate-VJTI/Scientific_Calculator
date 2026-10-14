@@ -127,3 +127,92 @@ Brent's lemma is still Phase 9.
 - Adaptive RK4 takes fewer steps than fixed-step for same accuracy
 - System solvers handle coupled ODEs correctly
 
+## Big Integer (Phase 8)
+
+**Representation:** Limb-based big integer using base 2^32 (32-bit limbs). Little-endian limb order. Sign stored separately.
+
+**Operations:**
+- Addition: Schoolbook addition with carry propagation across limbs. O(n) where n is number of limbs.
+- Subtraction: Schoolbook subtraction with borrow propagation. Handles sign changes.
+- Multiplication: Schoolbook O(n²) multiplication. For each limb pair, compute product and add with carry.
+- Division: Long division algorithm. O(n²) worst case.
+- Modulo: Computed as remainder after division.
+- Bitwise operations: AND, OR, XOR, NOT, left shift, right shift. Operate limb-by-limb.
+- Comparison: Sign-aware comparison. For same sign, compare limb-by-limb from most significant.
+
+**Numerical considerations:**
+- Normalization removes leading zero limbs after each operation
+- Negative zero is normalized to positive zero
+- Hex string input/output for easy debugging
+- Decimal conversion uses repeated division by 10
+
+**Parallel big integer:** Not implemented. Karatsuba multiplication or FFT-based multiplication could be parallelized, but schoolbook is sufficient for this project.
+
+**Statistics:**
+- Limb size: 32 bits
+- Max limb value: 2^32 - 1
+- Limb count: dynamic based on number size
+
+**Tests:**
+- Default constructor creates zero
+- Int constructor handles positive/negative values
+- Hex constructor parses 0x prefix
+- Comparison operators work correctly
+- Addition/subtraction/multiplication/division/modulo
+- Bitwise operations (AND, OR, XOR, shifts)
+- Large numbers (64-bit and beyond)
+- Statistics return correct limb info
+
+## Parallel Evaluation (Phase 9)
+
+**Batch evaluation:** Evaluates the same expression with different variable values in parallel using OpenMP.
+
+**batch_eval_x:** Evaluates expression f(x) for a vector of x values. Parses expression once, then evaluates in parallel with different x values.
+
+**batch_eval_exprs:** Evaluates multiple different expressions with the same context. Parses all expressions first, then evaluates in parallel.
+
+**param_sweep:** Evaluates expression f(x, param) for different parameter values. Useful for sensitivity analysis and parameter studies.
+
+**Implementation:**
+- Expression parsing is serial (done once before parallel evaluation)
+- Each evaluation gets its own EvalContext copy to avoid race conditions
+- Dynamic scheduling for load balancing
+- Error handling per-evaluation (doesn't stop entire batch)
+
+**Parallel strategy:**
+- Independent evaluations → embarrassingly parallel
+- No shared state between evaluations
+- OpenMP parallel for with dynamic schedule
+
+**Tests:**
+- Batch eval with linear expression 2x+1
+- Batch eval with quadratic x²
+- Batch eval multiple expressions
+- Parameter sweep for a*x
+- Error handling for division by zero
+
+## CPU Benchmarks (Phase 10a)
+
+**Benchmark suite:** Measures serial vs parallel performance for key operations.
+
+**Workloads:**
+- Matrix multiply (128x128): naive vs tiled multiplication
+- Integration (100k panels): Simpson rule serial vs parallel
+- Batch sin (100k values): serial vs parallel batch evaluation
+- Root finding (100 instances): independent bisection calls
+- ODE solver (100 instances): independent RK4 calls
+
+**Timing:** Uses std::chrono::high_resolution_clock for millisecond precision.
+
+**Output:** CSV file with columns: name, serial_ms, parallel_ms, threads, speedup.
+
+**Speedup calculation:** speedup = serial_time / parallel_time.
+
+**Usage:** `./psc_bench --threads N --output benchmarks.csv`
+
+**Notes:**
+- Root finding and ODE solving are inherently sequential for a single instance
+- Parallel versions run independent instances to show ensemble speedup
+- Matrix multiply and integration show true algorithmic parallelism
+- Batch operations show data parallelism
+

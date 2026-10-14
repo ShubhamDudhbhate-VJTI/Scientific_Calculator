@@ -14,10 +14,11 @@ College project: a scientific calculator whose heavy operations are implemented 
 | Integration (trap/Simpson/Gauss/adaptive/MC) | **Tested** on Colab |
 | Forward AD + finite differences | Implemented (push and re-run notebook 01) |
 | Matrices (mul variants, LU, inverse, solve) | **Tested** on Colab (41 tests + TSan pass) |
-| Solvers (roots + ODE ensemble) | In Progress |
-| Bignum | Not Started |
+| Solvers (roots + ODE ensemble) | **Tested** on Colab (16 tests) |
+| Big integer (limb-based) | **Tested** on Colab (15 tests) |
+| Parallel batch evaluation | **Tested** on Colab (5 tests) |
+| CPU benchmarks | Implemented (CSV output) |
 | CUDA | Not Started (`-DUSE_CUDA=ON` rejected until Phase 10b) |
-| Benchmarks | Not Started (no CSV timings) |
 
 ## Colab (Phase 2)
 

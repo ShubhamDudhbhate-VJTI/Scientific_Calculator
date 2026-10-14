@@ -17,10 +17,10 @@ Statuses: Not Started | In Progress | Implemented | Tested | Blocked
 | P4-integrate | Serial + parallel quadrature | Tested |
 | P5-diff | Finite differences + Dual AD | Implemented |
 | P6-linalg | Matrices, tiled mul, LU | Tested |
-| P7-solvers | Roots + ODE ensemble | In Progress |
-| P8-bigint | Limb integers + stats | Not Started |
-| P9-evalpar | DAG tasks + batch eval | Not Started |
-| P10a-cpubench | OpenMP CSV on Colab | Not Started |
+| P7-solvers | Roots + ODE ensemble | Tested |
+| P8-bigint | Limb integers + stats | Tested |
+| P9-evalpar | DAG tasks + batch eval | Tested |
+| P10a-cpubench | OpenMP CSV on Colab | Implemented |
 | P10b-cuda | CUDA kernels + GPU CSV | Not Started |
 | P10c-plots | Graphs from real CSV | Not Started |
 | P11-docs | Full report from real results | Not Started |

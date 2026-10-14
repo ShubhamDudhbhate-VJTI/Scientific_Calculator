@@ -48,6 +48,7 @@ add_library(psc STATIC
   src/parser/tokenizer.cpp
   src/parser/parser.cpp
   src/eval/eval.cpp
+  src/eval/parallel.cpp
   src/functions/taylor.cpp
   src/functions/cordic.cpp
   src/functions/elem.cpp
@@ -58,6 +59,7 @@ add_library(psc STATIC
   src/linalg/matrix.cpp
   src/solvers/root.cpp
   src/solvers/ode.cpp
+  src/bigint/bigint.cpp
 )
 target_include_directories(psc PUBLIC ${CMAKE_SOURCE_DIR}/include)
 target_link_libraries(psc PUBLIC OpenMP::OpenMP_CXX)
@@ -70,7 +72,7 @@ set_target_properties(psc_repl PROPERTIES OUTPUT_NAME psc)
 add_executable(psc_machine_info src/common/machine_info_main.cpp)
 target_link_libraries(psc_machine_info PRIVATE psc)
 
-add_executable(psc_bench bench/benchmark_main.cpp)
+add_executable(psc_bench bench/benchmark_main.cpp bench/cpu_bench.cpp)
 target_link_libraries(psc_bench PRIVATE psc)
 
 include(FetchContent)
@@ -91,6 +93,8 @@ add_executable(psc_tests
   tests/unit/test_diff.cpp
   tests/unit/test_linalg.cpp
   tests/unit/test_solvers.cpp
+  tests/unit/test_bigint.cpp
+  tests/unit/test_parallel_eval.cpp
 )
 target_link_libraries(psc_tests PRIVATE psc GTest::gtest_main)
 add_test(NAME psc_tests COMMAND psc_tests)

@@ -115,8 +115,9 @@ ODEResult euler_system(std::function<std::vector<double>(double, const std::vect
     double t = t0;
     std::vector<double> y = y0;
     
+    // Store initial state
+    result.t.push_back(t);
     for (size_t i = 0; i < n; ++i) {
-        result.t.push_back(t);
         result.y.push_back(y[i]);
     }
     
@@ -129,8 +130,8 @@ ODEResult euler_system(std::function<std::vector<double>(double, const std::vect
         }
         t += h_step;
         
+        result.t.push_back(t);
         for (size_t i = 0; i < n; ++i) {
-            result.t.push_back(t);
             result.y.push_back(y[i]);
         }
     }
@@ -145,8 +146,9 @@ ODEResult rk4_system(std::function<std::vector<double>(double, const std::vector
     double t = t0;
     std::vector<double> y = y0;
     
+    // Store initial state
+    result.t.push_back(t);
     for (size_t i = 0; i < n; ++i) {
-        result.t.push_back(t);
         result.y.push_back(y[i]);
     }
     
@@ -176,8 +178,8 @@ ODEResult rk4_system(std::function<std::vector<double>(double, const std::vector
         }
         t += h_step;
         
+        result.t.push_back(t);
         for (size_t i = 0; i < n; ++i) {
-            result.t.push_back(t);
             result.y.push_back(y[i]);
         }
     }
