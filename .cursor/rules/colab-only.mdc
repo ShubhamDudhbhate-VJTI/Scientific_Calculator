@@ -1,0 +1,15 @@
+---
+description: Run nothing locally; Colab is the only execution environment.
+alwaysApply: true
+---
+
+# Colab-only execution
+
+
+- Do not run, build, compile, install, test, or benchmark anything in the local terminal.
+- Do not run cmake, make, g++, python, pip, apt, or project scripts on this machine.
+- Only write and edit files. The student runs Google Colab notebooks and pastes logs back.
+- Never invent benchmark numbers, hardware details, or test results.
+- Never hard-code thread counts; use nproc / omp_get_max_threads at runtime.
+- CUDA is a required project deliverable, gated by -DUSE_CUDA=ON, implemented after CPU phases.
+- Stop after each phase until the student pastes passing Colab output.
