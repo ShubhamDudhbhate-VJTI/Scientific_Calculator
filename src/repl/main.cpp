@@ -2,10 +2,13 @@
 #include "psc/common/error.hpp"
 #include "psc/common/exec.hpp"
 #include "psc/common/machine_info.hpp"
+#include "psc/calculus/diff.hpp"
 #include "psc/calculus/integrate.hpp"
 #include "psc/eval/eval.hpp"
 
+#include <algorithm>
 #include <chrono>
+#include <iterator>
 #include <iomanip>
 #include <iostream>
 #include <sstream>
@@ -28,6 +31,8 @@ void print_help() {
       << "  backend std|taylor|cordic   Elementary-function implementation\n"
       << "  timing on|off        Print elapsed time after each expression\n"
       << "  integrate <expr> <a> <b> [--method simpson|trap|gauss5|adaptive|mc] [--n N] [--tol T]\n"
+      << "  diff <expr> at <x>     derivative via forward-mode AD (variable x)\n"
+      << "  grad <expr> at <v1> <v2> ...   gradient; variables x,y,z then x0...\n"
       << "  quit                 Exit\n\n"
       << "Any other line is an expression, e.g. 3 + 4 * (2 - 1)^2  or  sin(30) after mode deg.\n"
       << "Default backend is std (C++ library). Taylor/CORDIC are software loops, not FPGA.\n"
@@ -207,6 +212,67 @@ int main(int argc, char** argv) {
           std::cout << "time_s=" << std::setprecision(6) << seconds
                     << " mode=" << psc::mode_name(ctx.exec.mode)
                     << " threads=" << actual_threads << "\n";
+        }
+      } else if (parts[0] == "diff") {
+        auto at = std::find(parts.begin(), parts.end(), "at");
+        if (at == parts.end() || std::next(at) == parts.end() || parts.size() < 4) {
+          throw psc::CalcError("usage: diff <expr> at <x>");
+        }
+        std::string expr;
+        for (auto it = std::next(parts.begin()); it != at; ++it) {
+          if (!expr.empty()) {
+            expr += " ";
+          }
+          expr += *it;
+        }
+        const double x = std::stod(*std::next(at));
+        psc::DualEnv env;
+        env["x"] = {x, 1.0};
+        const auto t0 = std::chrono::steady_clock::now();
+        const psc::Dual y = psc::evaluate_dual_string(expr, env, ctx.angle);
+        const auto t1 = std::chrono::steady_clock::now();
+        std::cout << std::setprecision(15) << "f=" << y.v << "  f'=" << y.d << "\n";
+        if (timing) {
+          std::cout << "time_s=" << std::chrono::duration<double>(t1 - t0).count() << "\n";
+        }
+      } else if (parts[0] == "grad") {
+        auto at = std::find(parts.begin(), parts.end(), "at");
+        if (at == parts.end() || std::next(at) == parts.end()) {
+          throw psc::CalcError("usage: grad <expr> at <values...>");
+        }
+        std::string expr;
+        for (auto it = std::next(parts.begin()); it != at; ++it) {
+          if (!expr.empty()) {
+            expr += " ";
+          }
+          expr += *it;
+        }
+        std::vector<double> vals;
+        for (auto it = std::next(at); it != parts.end(); ++it) {
+          vals.push_back(std::stod(*it));
+        }
+        const char* def[] = {"x", "y", "z", "x0", "x1", "x2", "x3", "x4"};
+        if (vals.empty() || vals.size() > 8) {
+          throw psc::CalcError("grad: provide 1 to 8 values after 'at'");
+        }
+        std::vector<std::string> names;
+        for (std::size_t i = 0; i < vals.size(); ++i) {
+          names.emplace_back(def[i]);
+        }
+        psc::ExecOptions ex = ctx.exec;
+        ex.parallel_cutoff = 1;
+        const auto t0 = std::chrono::steady_clock::now();
+        auto g = psc::gradient_ad(expr, names, vals, ctx.angle, ex);
+        const auto t1 = std::chrono::steady_clock::now();
+        for (std::size_t i = 0; i < g.size(); ++i) {
+          std::cout << names[i] << "=" << std::setprecision(15) << g[i];
+          if (i + 1 < g.size()) {
+            std::cout << "  ";
+          }
+        }
+        std::cout << "\n";
+        if (timing) {
+          std::cout << "time_s=" << std::chrono::duration<double>(t1 - t0).count() << "\n";
         }
       } else if (parts[0] == "mode") {
         if (parts.size() != 2) {

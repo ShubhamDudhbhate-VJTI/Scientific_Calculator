@@ -41,3 +41,11 @@ Brent's lemma is still Phase 9.
 **Parallel:** panel loops use `reduction(+:sum)`. Adaptive uses OpenMP tasks on subintervals (global `tol` split in half). 2D/3D: outer 1D is parallel, inner is serial (no nested OpenMP). Monte Carlo: one `mt19937` per thread, seed `seed + tid*997`.
 
 **Tests:** ∫ 4/(1+x²) dx on [0,1] = π, ∫ sin x on [0,π] = 2, ∫ exp(-x²) on [0,1] vs erf.
+
+## Differentiation (Phase 5)
+
+**Finite differences:** forward O(h), backward O(h), central O(h^2). Small h → round-off; large h → truncation. The step-size study should show a U-shaped error curve.
+
+**Forward AD:** `Dual {value, derivative}` with product/quotient/chain rules. One sweep per independent variable for a gradient. Reverse-mode tape is **not** implemented (shared accumulations are harder to parallelize).
+
+**Parallel:** independent Dual seeds (one per variable) with `parallel for`. Does not reduce arithmetic; it only reduces elapsed time.
