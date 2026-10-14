@@ -1,14 +1,23 @@
 # Testing
 
-Phase 1: GoogleTest via CMake FetchContent. Run in Colab with `notebooks/01_build_and_test.ipynb` or:
+Run in Colab with `notebooks/01_build_and_test.ipynb` or:
 
 ```bash
 bash scripts/colab_build.sh
 bash scripts/colab_build.sh --tsan
 ```
 
-Current tests (`tests/unit/test_hello.cpp`): version string, OpenMP compiled in, serial mode forces 1 thread, `CalcError` position, machine-info text, a tiny OpenMP reduction.
+## Phase 1 (Colab, recorded)
 
-Sanitizer results: **not yet run**. Do not claim ThreadSanitizer is clean until notebook 01 finishes on Colab.
+- Compiler: GNU 13.3.0
+- OpenMP 4.5
+- Release `ctest`: passed (hello tests) — student Phase 1 run
+- ThreadSanitizer (`-fsanitize=thread`, RelWithDebInfo): **psc_tests Passed (1.03 s)**, `100% tests passed`, `OK: ThreadSanitizer ctest finished`
+- Colab `nproc`: 2 (from notebook 00)
 
-ThreadSanitizer + OpenMP can be noisy or unsupported on some GCC/libgomp combinations. If Colab fails, paste the log; we will record the exact limitation rather than fake a pass.
+## Phase 2 tests (not Colab-tested yet)
+
+- `tests/unit/test_parser.cpp` — tokens, unary minus, unmatched parens, `sin(x)` AST
+- `tests/unit/test_eval.cpp` — precedence, `-2^2`, `2^3^2`, `sin(30)` deg, `tan(90)` deg, `ln(0)`, `sqrt(-1)`, `fact`, variables
+
+Re-run notebook 01 after pushing Phase 2 to GitHub.

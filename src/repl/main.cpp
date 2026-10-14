@@ -2,29 +2,62 @@
 #include "psc/common/error.hpp"
 #include "psc/common/exec.hpp"
 #include "psc/common/machine_info.hpp"
+#include "psc/eval/eval.hpp"
 
+#include <chrono>
+#include <iomanip>
 #include <iostream>
+#include <sstream>
 #include <string>
+#include <vector>
 
 namespace {
 
 void print_help() {
   std::cout
       << "Parallel Scientific Calculator " << psc::project_version() << "\n"
-      << "Phase 1: skeleton only. Parser and numerical modules are not implemented yet.\n\n"
+      << "Phase 2: serial expression evaluation. Heavy modules (integrate, CUDA) come later.\n\n"
       << "Commands:\n"
-      << "  help       Show this help\n"
-      << "  version    Print version\n"
-      << "  machine    Print host facts collected at runtime\n"
-      << "  threads N  Request OpenMP thread count (0 = runtime default)\n"
-      << "  mode serial|parallel\n"
-      << "  quit       Exit\n\n"
-      << "Expression evaluation and scientific commands arrive in later phases.\n";
+      << "  help                 Show this help\n"
+      << "  version              Print version\n"
+      << "  machine              Print host facts\n"
+      << "  threads N            OpenMP thread request (0 = runtime default)\n"
+      << "  mode serial|parallel Execution path (eval is still serial in Phase 2)\n"
+      << "  mode deg|rad         Angle mode for trig functions\n"
+      << "  timing on|off        Print elapsed time after each expression\n"
+      << "  quit                 Exit\n\n"
+      << "Any other line is an expression, e.g. 3 + 4 * (2 - 1)^2  or  sin(30) after mode deg.\n"
+      << "Unary minus vs power: -2^2 = -4.  Power is right-assoc: 2^3^2 = 512.\n"
+      << "Functions currently use the C++ standard library (Taylor/CORDIC is Phase 3).\n";
+}
+
+std::vector<std::string> split_ws(const std::string& line) {
+  std::istringstream in(line);
+  std::vector<std::string> parts;
+  std::string w;
+  while (in >> w) {
+    parts.push_back(w);
+  }
+  return parts;
+}
+
+void print_result(double v, bool timing, double seconds, const psc::EvalContext& ctx, int actual_threads) {
+  std::cout << std::setprecision(15) << v << "\n";
+  if (timing) {
+    std::cout << "time_s=" << std::setprecision(6) << seconds
+              << " mode=" << psc::mode_name(ctx.exec.mode)
+              << " angle=" << psc::angle_mode_name(ctx.angle)
+              << " threads=" << actual_threads << "\n";
+  }
 }
 
 }  // namespace
 
 int main(int argc, char** argv) {
+  psc::EvalContext ctx;
+  bool timing = false;
+  const char* expr_arg = nullptr;
+
   for (int i = 1; i < argc; ++i) {
     const std::string a = argv[i];
     if (a == "--help") {
@@ -32,15 +65,43 @@ int main(int argc, char** argv) {
       return 0;
     }
     if (a == "--threads") {
-      std::cerr << "error: --threads is accepted after Phase 2; use the REPL command "
-                   "'threads N' in this build, or pass nothing.\n";
+      if (i + 1 >= argc) {
+        std::cerr << "error: --threads requires N\n";
+        return 1;
+      }
+      ctx.exec.requested_threads = std::stoi(argv[++i]);
+      if (ctx.exec.requested_threads < 0) {
+        std::cerr << "error: thread count must be >= 0\n";
+        return 1;
+      }
+    } else if (a == "--expr") {
+      if (i + 1 >= argc) {
+        std::cerr << "error: --expr requires a string\n";
+        return 1;
+      }
+      expr_arg = argv[++i];
+    } else {
+      std::cerr << "error: unknown argument '" << a << "'. Try --help.\n";
       return 1;
     }
   }
 
-  psc::ExecOptions opts;
-  std::cout << "psc " << psc::project_version() << " (Phase 1 skeleton)\n"
-            << "Type 'help'. Expressions are not parsed yet.\n";
+  const int actual_threads = psc::apply_thread_request(ctx.exec);
+
+  if (expr_arg != nullptr) {
+    try {
+      const double v = psc::evaluate_string(expr_arg, ctx);
+      std::cout << std::setprecision(15) << v << "\n";
+      return 0;
+    } catch (const std::exception& e) {
+      std::cerr << "error: " << e.what() << "\n";
+      return 1;
+    }
+  }
+
+  std::cout << "psc " << psc::project_version() << " (Phase 2)\n"
+            << "Type 'help'. Angle=" << psc::angle_mode_name(ctx.angle)
+            << " exec=" << psc::mode_name(ctx.exec.mode) << "\n";
 
   std::string line;
   while (true) {
@@ -49,49 +110,65 @@ int main(int argc, char** argv) {
       std::cout << "\n";
       break;
     }
-    if (line.empty()) {
+    if (line.find_first_not_of(" \t") == std::string::npos) {
       continue;
     }
     try {
-      if (line == "help" || line == "?") {
+      const auto parts = split_ws(line);
+      if (parts.empty()) {
+        continue;
+      }
+      if (parts[0] == "help" || parts[0] == "?") {
         print_help();
-      } else if (line == "quit" || line == "exit") {
+      } else if (parts[0] == "quit" || parts[0] == "exit") {
         break;
-      } else if (line == "version") {
+      } else if (parts[0] == "version") {
         std::cout << psc::project_version() << "\n";
-      } else if (line == "machine") {
+      } else if (parts[0] == "machine") {
         std::cout << psc::collect_machine_info();
-      } else if (line.rfind("threads", 0) == 0) {
-        const auto rest = line.size() > 7 ? line.substr(7) : std::string();
-        int n = 0;
-        if (rest.find_first_not_of(" \t") == std::string::npos) {
+      } else if (parts[0] == "threads") {
+        if (parts.size() != 2) {
           throw psc::CalcError("usage: threads N");
         }
-        n = std::stoi(rest);
+        const int n = std::stoi(parts[1]);
         if (n < 0) {
           throw psc::CalcError("thread count must be >= 0");
         }
-        opts.requested_threads = n;
-        const int actual = psc::apply_thread_request(opts);
+        ctx.exec.requested_threads = n;
+        const int actual = psc::apply_thread_request(ctx.exec);
         std::cout << "requested_threads=" << n << " actual_threads=" << actual << "\n";
-      } else if (line.rfind("mode", 0) == 0) {
-        const auto rest = line.substr(4);
-        auto pos = rest.find_first_not_of(" \t");
-        if (pos == std::string::npos) {
-          throw psc::CalcError("usage: mode serial|parallel");
+      } else if (parts[0] == "timing") {
+        if (parts.size() != 2 || (parts[1] != "on" && parts[1] != "off")) {
+          throw psc::CalcError("usage: timing on|off");
         }
-        const auto m = rest.substr(pos);
-        if (m == "serial") {
-          opts.mode = psc::ExecMode::Serial;
-        } else if (m == "parallel") {
-          opts.mode = psc::ExecMode::Parallel;
+        timing = parts[1] == "on";
+        std::cout << "timing=" << (timing ? "on" : "off") << "\n";
+      } else if (parts[0] == "mode") {
+        if (parts.size() != 2) {
+          throw psc::CalcError("usage: mode serial|parallel|deg|rad");
+        }
+        if (parts[1] == "serial") {
+          ctx.exec.mode = psc::ExecMode::Serial;
+          std::cout << "exec=" << psc::mode_name(ctx.exec.mode) << "\n";
+        } else if (parts[1] == "parallel") {
+          ctx.exec.mode = psc::ExecMode::Parallel;
+          std::cout << "exec=" << psc::mode_name(ctx.exec.mode)
+                    << " (expression eval is still serial until Phase 9)\n";
+        } else if (parts[1] == "deg") {
+          ctx.angle = psc::AngleMode::Degrees;
+          std::cout << "angle=deg\n";
+        } else if (parts[1] == "rad") {
+          ctx.angle = psc::AngleMode::Radians;
+          std::cout << "angle=rad\n";
         } else {
-          throw psc::CalcError("usage: mode serial|parallel");
+          throw psc::CalcError("usage: mode serial|parallel|deg|rad");
         }
-        std::cout << "mode=" << psc::mode_name(opts.mode) << "\n";
       } else {
-        throw psc::CalcError(
-            "unknown command in Phase 1. Type 'help'. Expression evaluation is not implemented.");
+        const auto t0 = std::chrono::steady_clock::now();
+        const double v = psc::evaluate_string(line, ctx);
+        const auto t1 = std::chrono::steady_clock::now();
+        const double seconds = std::chrono::duration<double>(t1 - t0).count();
+        print_result(v, timing, seconds, ctx, actual_threads);
       }
     } catch (const psc::CalcError& e) {
       std::cerr << "error: " << e.what() << "\n";

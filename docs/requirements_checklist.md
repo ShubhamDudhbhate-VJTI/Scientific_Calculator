@@ -11,8 +11,8 @@ Statuses: Not Started | In Progress | Implemented | Tested | Blocked
 | P1-machine | Machine info helper + script | Implemented |
 | P1-repl | Skeleton REPL | Implemented |
 | P1-notebooks | Colab 00–04 notebooks | Implemented |
-| P1-colab-run | Student runs 00+01 on Colab | Not Started |
-| P2-parser | Tokenizer, shunting-yard, AST, serial eval | Not Started |
+| P1-colab-run | Student runs 00+01 on Colab | Tested |
+| P2-parser | Tokenizer, shunting-yard, AST, serial eval | Implemented |
 | P3-functions | Taylor + CORDIC + batch OpenMP | Not Started |
 | P4-integrate | Serial + parallel quadrature | Not Started |
 | P5-diff | Finite differences + Dual AD | Not Started |

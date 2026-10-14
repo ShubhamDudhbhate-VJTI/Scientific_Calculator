@@ -12,6 +12,10 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
   set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type" FORCE)
 endif()
 
+if(POLICY CMP0135)
+  cmake_policy(SET CMP0135 NEW)
+endif()
+
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
@@ -41,6 +45,9 @@ add_library(psc STATIC
   src/common/error.cpp
   src/common/exec.cpp
   src/common/machine_info.cpp
+  src/parser/tokenizer.cpp
+  src/parser/parser.cpp
+  src/eval/eval.cpp
 )
 target_include_directories(psc PUBLIC ${CMAKE_SOURCE_DIR}/include)
 target_link_libraries(psc PUBLIC OpenMP::OpenMP_CXX)
@@ -65,7 +72,11 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(googletest)
 
 enable_testing()
-add_executable(psc_tests tests/unit/test_hello.cpp)
+add_executable(psc_tests
+  tests/unit/test_hello.cpp
+  tests/unit/test_parser.cpp
+  tests/unit/test_eval.cpp
+)
 target_link_libraries(psc_tests PRIVATE psc GTest::gtest_main)
 add_test(NAME psc_tests COMMAND psc_tests)
 
