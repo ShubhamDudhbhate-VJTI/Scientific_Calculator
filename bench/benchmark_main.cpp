@@ -3,6 +3,7 @@
 
 #include <cstring>
 #include <iostream>
+#include <iomanip>
 #include <omp.h>
 
 int main(int argc, char** argv) {

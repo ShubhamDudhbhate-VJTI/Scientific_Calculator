@@ -1,7 +1,7 @@
 #include "cpu_bench.h"
 #include "psc/linalg/matrix.h"
-#include "psc/calculus/integrate.h"
-#include "psc/functions/batch.h"
+#include "psc/calculus/integrate.hpp"
+#include "psc/functions/batch.hpp"
 #include "psc/solvers/root.h"
 #include "psc/solvers/ode.h"
 #include <chrono>

@@ -2,11 +2,12 @@
 #include "psc/eval/parallel.h"
 #include "psc/eval/eval.hpp"
 
+using namespace psc;
 using namespace psc::eval;
 
 class ParallelEvalTest : public ::testing::Test {
 protected:
-    EvalContext ctx;
+    psc::EvalContext ctx;
 };
 
 TEST_F(ParallelEvalTest, BatchEvalXLinear) {
