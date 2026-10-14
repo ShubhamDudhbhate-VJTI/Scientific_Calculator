@@ -255,10 +255,7 @@ Matrix::LUResult Matrix::lu_with_pivoting() const {
     
     size_t n = rows_;
     Matrix A = *this;  // Working copy
-    LUResult result;
-    result.L = Matrix::identity(n);
-    result.U = Matrix(n, n);
-    result.pivots.resize(n);
+    LUResult result(n);  // Constructor initializes L, U, and pivots
     
     for (size_t i = 0; i < n; ++i) {
         result.pivots[i] = i;

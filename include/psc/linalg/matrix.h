@@ -74,6 +74,9 @@ struct Matrix::LUResult {
     Matrix L;
     Matrix U;
     std::vector<size_t> pivots;
+    
+    // Constructor to initialize matrices with size n
+    LUResult(size_t n) : L(Matrix::identity(n)), U(n, n), pivots(n) {}
 };
 
 // Free functions for parallel operations
