@@ -56,6 +56,8 @@ add_library(psc STATIC
   src/calculus/dual.cpp
   src/calculus/diff.cpp
   src/linalg/matrix.cpp
+  src/solvers/root.cpp
+  src/solvers/ode.cpp
 )
 target_include_directories(psc PUBLIC ${CMAKE_SOURCE_DIR}/include)
 target_link_libraries(psc PUBLIC OpenMP::OpenMP_CXX)
@@ -88,6 +90,7 @@ add_executable(psc_tests
   tests/unit/test_integrate.cpp
   tests/unit/test_diff.cpp
   tests/unit/test_linalg.cpp
+  tests/unit/test_solvers.cpp
 )
 target_link_libraries(psc_tests PRIVATE psc GTest::gtest_main)
 add_test(NAME psc_tests COMMAND psc_tests)

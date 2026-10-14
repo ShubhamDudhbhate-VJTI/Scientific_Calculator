@@ -85,3 +85,45 @@ Brent's lemma is still Phase 9.
 - Solve: A × x = b verified by substitution
 - Determinant of 2×2 matches formula, Iₙ has det=1
 - Singular matrices detected and throw
+
+## Solvers (Phase 7)
+
+**Root finding methods:**
+
+**Bisection:** Guaranteed convergence for continuous functions on interval [a,b] where f(a)*f(b) < 0. Halves interval each iteration. Linear convergence (O(log(1/ε)) iterations).
+
+**Newton-Raphson:** Uses derivative: x_{n+1} = x_n - f(x_n)/f'(x_n). Quadratic convergence (error squares each iteration) when near root. Requires derivative function; can diverge if initial guess is poor.
+
+**Secant:** Derivative-free approximation of Newton: x_{n+1} = x_n - f(x_n)*(x_n - x_{n-1})/(f(x_n) - f(x_{n-1})). Superlinear convergence (~1.618 order). Needs two initial points.
+
+**False position (regula falsi):** Hybrid of bisection and secant. Uses secant interpolation but keeps bracketing property. Guaranteed convergence like bisection, but can be slow for some functions.
+
+**Parallel root finding:** Not implemented. Ensemble root finding (finding multiple roots simultaneously) could be parallelized with OpenMP tasks.
+
+**ODE solvers:**
+
+**Euler method:** First-order explicit: y_{n+1} = y_n + h*f(t_n, y_n). Local error O(h²), global error O(h). Simple but inaccurate for stiff systems.
+
+**Runge-Kutta 4 (RK4):** Fourth-order explicit: uses four function evaluations per step. Local error O(h⁵), global error O(h⁴). Much more accurate than Euler for same step size.
+
+**Adaptive RK4:** Automatically adjusts step size based on error estimate (comparing full step vs two half steps). Reduces step when error exceeds tolerance, increases when error is small. Efficient for problems with varying dynamics.
+
+**System of ODEs:** Both Euler and RK4 support vector-valued systems. For n equations, each step evaluates f for all n variables.
+
+**Parallel ODE ensemble:** Not implemented. Could parallelize solving multiple ODEs with different initial conditions (parameter sweeps) using OpenMP.
+
+**Numerical considerations:**
+- Newton method checks for near-zero derivative to avoid division by zero
+- Adaptive step size has min/max bounds to prevent too small/large steps
+- System solvers store results interleaved: t[0], y1[0], y2[0], ..., t[1], y1[1], y2[1], ...
+
+**Tests:**
+- Bisection finds roots of x²-4 at ±2
+- Newton finds root of cos(x)-x near 0.739
+- Secant converges to same roots as Newton
+- False position maintains bracketing property
+- Euler approximates dy/dt = -2y with ~2% error at h=0.01
+- RK4 approximates same ODE with <1e-6 error at h=0.1
+- Adaptive RK4 takes fewer steps than fixed-step for same accuracy
+- System solvers handle coupled ODEs correctly
+
