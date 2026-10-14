@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 #include "psc/eval/parallel.h"
-#include "psc/eval/eval.h"
+#include "psc/eval/eval.hpp"
 
 using namespace psc::eval;
 

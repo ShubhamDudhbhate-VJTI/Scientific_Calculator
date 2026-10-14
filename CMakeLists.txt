@@ -73,6 +73,7 @@ add_executable(psc_machine_info src/common/machine_info_main.cpp)
 target_link_libraries(psc_machine_info PRIVATE psc)
 
 add_executable(psc_bench bench/benchmark_main.cpp bench/cpu_bench.cpp)
+target_include_directories(psc_bench PRIVATE ${CMAKE_SOURCE_DIR}/bench)
 target_link_libraries(psc_bench PRIVATE psc)
 
 include(FetchContent)

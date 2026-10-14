@@ -1,4 +1,4 @@
-#include "psc/bench/cpu_bench.h"
+#include "cpu_bench.h"
 #include "psc/linalg/matrix.h"
 #include "psc/calculus/integrate.h"
 #include "psc/functions/batch.h"
@@ -9,7 +9,6 @@
 #include <fstream>
 #include <iomanip>
 
-namespace psc {
 namespace bench {
 
 namespace {
@@ -39,11 +38,11 @@ double bench_matrix_multiply(size_t n, int threads) {
     auto [A, B] = setup();
     
     auto serial_func = [&]() {
-        auto C = parallel::multiply_naive(A, B, 1);
+        auto C = psc::linalg::parallel::multiply_naive(A, B, 1);
     };
     
     auto parallel_func = [&]() {
-        auto C = parallel::multiply_tiled(A, B, 64, threads);
+        auto C = psc::linalg::parallel::multiply_tiled(A, B, 64, threads);
     };
     
     double serial_time = time_function(serial_func);
@@ -58,11 +57,11 @@ double bench_integration(size_t n, int threads) {
     auto f = [](double x) { return std::sin(x); };
     
     auto serial_func = [&]() {
-        integrate_simpson(f, 0, 3.14159, n, 1e-10, 1);
+        psc::calculus::integrate_simpson(f, 0, 3.14159, n, 1e-10, 1);
     };
     
     auto parallel_func = [&]() {
-        integrate_simpson(f, 0, 3.14159, n, 1e-10, threads);
+        psc::calculus::integrate_simpson(f, 0, 3.14159, n, 1e-10, threads);
     };
     
     double serial_time = time_function(serial_func);
@@ -80,11 +79,11 @@ double bench_batch_sin(size_t n, int threads) {
     }
     
     auto serial_func = [&]() {
-        batch_sin(x, 1);
+        psc::functions::batch_sin(x, 1);
     };
     
     auto parallel_func = [&]() {
-        batch_sin(x, threads);
+        psc::functions::batch_sin(x, threads);
     };
     
     double serial_time = time_function(serial_func);
@@ -100,7 +99,7 @@ double bench_root_finding(int iterations, int threads) {
     
     auto serial_func = [&]() {
         for (int i = 0; i < iterations; ++i) {
-            bisection(f, 0, 5, 1e-10);
+            psc::solvers::bisection(f, 0, 5, 1e-10);
         }
     };
     
@@ -108,7 +107,7 @@ double bench_root_finding(int iterations, int threads) {
     auto parallel_func = [&]() {
         #pragma omp parallel for num_threads(threads)
         for (int i = 0; i < iterations; ++i) {
-            bisection(f, 0, 5, 1e-10);
+            psc::solvers::bisection(f, 0, 5, 1e-10);
         }
     };
     
@@ -124,14 +123,14 @@ double bench_ode_solver(int steps, int threads) {
     auto f = [](double t, double y) { return -2 * y; };
     
     auto serial_func = [&]() {
-        rk4(f, 0, 1, 1, 0.01);
+        psc::solvers::rk4(f, 0, 1, 1, 0.01);
     };
     
     // ODE solving is sequential, parallel version runs independent instances
     auto parallel_func = [&]() {
         #pragma omp parallel for num_threads(threads)
         for (int i = 0; i < steps; ++i) {
-            rk4(f, 0, 1, 1, 0.01);
+            psc::solvers::rk4(f, 0, 1, 1, 0.01);
         }
     };
     
@@ -214,4 +213,3 @@ void write_csv(const std::vector<BenchResult>& results, const std::string& filen
 }
 
 } // namespace bench
-} // namespace psc

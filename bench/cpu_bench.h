@@ -4,7 +4,6 @@
 #include <vector>
 #include <functional>
 
-namespace psc {
 namespace bench {
 
 // Benchmark result
@@ -30,4 +29,3 @@ double bench_ode_solver(int steps, int threads);
 void write_csv(const std::vector<BenchResult>& results, const std::string& filename);
 
 } // namespace bench
-} // namespace psc

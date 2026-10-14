@@ -1,5 +1,5 @@
 #include "psc/common/config.hpp"
-#include "psc/bench/cpu_bench.h"
+#include "cpu_bench.h"
 
 #include <cstring>
 #include <iostream>
@@ -37,7 +37,7 @@ int main(int argc, char** argv) {
   std::cout << "Running CPU benchmarks with " << threads << " thread(s)" << std::endl;
   std::cout << "OpenMP max threads: " << omp_get_max_threads() << std::endl;
   
-  auto results = psc::bench::run_cpu_benchmarks(threads, output_csv);
+  auto results = bench::run_cpu_benchmarks(threads, output_csv);
   
   std::cout << "\nBenchmark Results:" << std::endl;
   std::cout << std::left << std::setw(30) << "Name" 
