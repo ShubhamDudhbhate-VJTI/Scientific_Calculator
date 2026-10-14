@@ -320,28 +320,37 @@ TEST_F(MatrixTest, LUDecomposition) {
     A(1, 0) = -4; A(1, 1) = 6; A(1, 2) = 3;
     A(2, 0) = -4; A(2, 1) = -2; A(2, 2) = 8;
     
-    auto [L, U] = A.lu_decomposition();
+    // Get full LU result with pivots
+    auto lu = A.lu_with_pivoting();
     
     // Check that L is lower triangular with ones on diagonal
     for (size_t i = 0; i < 3; ++i) {
-        EXPECT_NEAR(L(i, i), 1.0, 1e-10);
+        EXPECT_NEAR(lu.L(i, i), 1.0, 1e-10);
         for (size_t j = i + 1; j < 3; ++j) {
-            EXPECT_NEAR(L(i, j), 0.0, 1e-10);
+            EXPECT_NEAR(lu.L(i, j), 0.0, 1e-10);
         }
     }
     
     // Check that U is upper triangular
     for (size_t i = 1; i < 3; ++i) {
         for (size_t j = 0; j < i; ++j) {
-            EXPECT_NEAR(U(i, j), 0.0, 1e-10);
+            EXPECT_NEAR(lu.U(i, j), 0.0, 1e-10);
         }
     }
     
-    // Check that A = L * U
-    Matrix A_reconstructed = L * U;
+    // Apply permutation to A: PA = LU where P is the permutation from pivots
+    Matrix PA(3, 3);
     for (size_t i = 0; i < 3; ++i) {
         for (size_t j = 0; j < 3; ++j) {
-            EXPECT_NEAR(A_reconstructed(i, j), A(i, j), 1e-9);
+            PA(i, j) = A(lu.pivots[i], j);
+        }
+    }
+    
+    // Check that PA = L * U
+    Matrix PA_reconstructed = lu.L * lu.U;
+    for (size_t i = 0; i < 3; ++i) {
+        for (size_t j = 0; j < 3; ++j) {
+            EXPECT_NEAR(PA_reconstructed(i, j), PA(i, j), 1e-9);
         }
     }
 }

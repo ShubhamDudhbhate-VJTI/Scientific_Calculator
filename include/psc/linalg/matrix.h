@@ -43,6 +43,7 @@ public:
     double determinant() const;
     Matrix inverse() const;
     std::pair<Matrix, Matrix> lu_decomposition() const;
+    LUResult lu_with_pivoting() const;  // Returns L, U, and pivot information
     Matrix solve(const Matrix& b) const;  // Solve Ax = b
     int rank(double tolerance = 1e-10) const;
 
@@ -63,8 +64,7 @@ private:
 
     // Forward declaration for helper struct
     struct LUResult;
-    LUResult lu_with_pivoting() const;
-
+    
     // Helper for rank computation
     int rank_from_lu(const LUResult& lu, double tolerance) const;
 };
