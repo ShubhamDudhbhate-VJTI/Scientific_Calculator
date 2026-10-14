@@ -48,6 +48,10 @@ add_library(psc STATIC
   src/parser/tokenizer.cpp
   src/parser/parser.cpp
   src/eval/eval.cpp
+  src/functions/taylor.cpp
+  src/functions/cordic.cpp
+  src/functions/elem.cpp
+  src/functions/batch.cpp
 )
 target_include_directories(psc PUBLIC ${CMAKE_SOURCE_DIR}/include)
 target_link_libraries(psc PUBLIC OpenMP::OpenMP_CXX)
@@ -76,6 +80,7 @@ add_executable(psc_tests
   tests/unit/test_hello.cpp
   tests/unit/test_parser.cpp
   tests/unit/test_eval.cpp
+  tests/unit/test_functions.cpp
 )
 target_link_libraries(psc_tests PRIVATE psc GTest::gtest_main)
 add_test(NAME psc_tests COMMAND psc_tests)

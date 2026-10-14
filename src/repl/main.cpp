@@ -16,19 +16,20 @@ namespace {
 void print_help() {
   std::cout
       << "Parallel Scientific Calculator " << psc::project_version() << "\n"
-      << "Phase 2: serial expression evaluation. Heavy modules (integrate, CUDA) come later.\n\n"
+      << "Phase 3: serial eval plus Taylor/CORDIC elementary functions.\n\n"
       << "Commands:\n"
       << "  help                 Show this help\n"
       << "  version              Print version\n"
       << "  machine              Print host facts\n"
       << "  threads N            OpenMP thread request (0 = runtime default)\n"
-      << "  mode serial|parallel Execution path (eval is still serial in Phase 2)\n"
+      << "  mode serial|parallel Batch OpenMP (single expressions stay serial)\n"
       << "  mode deg|rad         Angle mode for trig functions\n"
+      << "  backend std|taylor|cordic   Elementary-function implementation\n"
       << "  timing on|off        Print elapsed time after each expression\n"
       << "  quit                 Exit\n\n"
       << "Any other line is an expression, e.g. 3 + 4 * (2 - 1)^2  or  sin(30) after mode deg.\n"
-      << "Unary minus vs power: -2^2 = -4.  Power is right-assoc: 2^3^2 = 512.\n"
-      << "Functions currently use the C++ standard library (Taylor/CORDIC is Phase 3).\n";
+      << "Default backend is std (C++ library). Taylor/CORDIC are software loops, not FPGA.\n"
+      << "CORDIC sqrt is not implemented.\n";
 }
 
 std::vector<std::string> split_ws(const std::string& line) {
@@ -99,9 +100,10 @@ int main(int argc, char** argv) {
     }
   }
 
-  std::cout << "psc " << psc::project_version() << " (Phase 2)\n"
+  std::cout << "psc " << psc::project_version() << " (Phase 3)\n"
             << "Type 'help'. Angle=" << psc::angle_mode_name(ctx.angle)
-            << " exec=" << psc::mode_name(ctx.exec.mode) << "\n";
+            << " exec=" << psc::mode_name(ctx.exec.mode)
+            << " backend=" << psc::backend_name(ctx.backend) << "\n";
 
   std::string line;
   while (true) {
@@ -143,6 +145,20 @@ int main(int argc, char** argv) {
         }
         timing = parts[1] == "on";
         std::cout << "timing=" << (timing ? "on" : "off") << "\n";
+      } else if (parts[0] == "backend") {
+        if (parts.size() != 2) {
+          throw psc::CalcError("usage: backend std|taylor|cordic");
+        }
+        if (parts[1] == "std") {
+          ctx.backend = psc::FunBackend::Std;
+        } else if (parts[1] == "taylor") {
+          ctx.backend = psc::FunBackend::Taylor;
+        } else if (parts[1] == "cordic") {
+          ctx.backend = psc::FunBackend::Cordic;
+        } else {
+          throw psc::CalcError("usage: backend std|taylor|cordic");
+        }
+        std::cout << "backend=" << psc::backend_name(ctx.backend) << "\n";
       } else if (parts[0] == "mode") {
         if (parts.size() != 2) {
           throw psc::CalcError("usage: mode serial|parallel|deg|rad");

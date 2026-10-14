@@ -9,8 +9,8 @@ College project: a scientific calculator whose heavy operations are implemented 
 | Area | Status |
 |---|---|
 | CMake + OpenMP | **Tested** on Colab (GCC 13.3.0, OpenMP 4.5, TSan passed) |
-| Parser + serial evaluator + REPL | Implemented (push and re-run notebook 01) |
-| Taylor / CORDIC | Not Started |
+| Parser + serial evaluator + REPL | **Tested** on Colab (23 tests + TSan after skip) |
+| Taylor / CORDIC + batch OpenMP | Implemented (push and re-run notebook 01) |
 | Integration, AD, matrices, solvers, bignum | Not Started |
 | CUDA | Not Started (`-DUSE_CUDA=ON` rejected until Phase 10b) |
 | Benchmarks | Not Started (no CSV timings) |

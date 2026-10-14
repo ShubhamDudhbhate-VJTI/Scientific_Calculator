@@ -31,4 +31,4 @@ Fix applied: skip `Hello.ParallelForReduction` when `__SANITIZE_THREAD__` is set
 
 Parser/eval tests had **no** TSan reports.
 
-Re-run notebook 01 TSan cell after pushing this skip.
+Re-run after skip (Colab, GCC 13.3.0): TSan `psc_tests` **Passed** (0.02 s), `100% tests passed`, `OK: ThreadSanitizer ctest finished`. The OpenMP reduction hello-test is skipped under TSan; parser/eval had no TSan reports.

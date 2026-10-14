@@ -1,6 +1,7 @@
 #include "psc/eval/eval.hpp"
 
 #include "psc/common/error.hpp"
+#include "psc/functions/elem.hpp"
 #include "psc/parser/parser.hpp"
 
 #include <cmath>
@@ -39,20 +40,21 @@ double factorial_n(double x, std::size_t pos) {
   return acc;
 }
 
-double call_function(const std::string& name, double x, AngleMode angle, std::size_t pos) {
+double call_function(const std::string& name, double x, AngleMode angle, FunBackend backend, int iters,
+                     std::size_t pos) {
   if (name == "sin") {
-    return std::sin(to_radians(x, angle));
+    return elem_sin(to_radians(x, angle), backend, iters);
   }
   if (name == "cos") {
-    return std::cos(to_radians(x, angle));
+    return elem_cos(to_radians(x, angle), backend, iters);
   }
   if (name == "tan") {
     const double r = to_radians(x, angle);
-    const double c = std::cos(r);
+    const double c = elem_cos(r, backend, iters);
     if (nearly_zero(c)) {
       throw CalcError("tan is undefined at this angle (cosine is 0)", pos);
     }
-    return std::sin(r) / c;
+    return elem_sin(r, backend, iters) / c;
   }
   if (name == "asin") {
     if (x < -1.0 || x > 1.0) {
@@ -67,37 +69,32 @@ double call_function(const std::string& name, double x, AngleMode angle, std::si
     return from_radians(std::acos(x), angle);
   }
   if (name == "atan") {
-    return from_radians(std::atan(x), angle);
+    return from_radians(elem_atan(x, backend, iters), angle);
   }
   if (name == "sinh") {
-    return std::sinh(x);
+    return elem_sinh(x, backend, iters);
   }
   if (name == "cosh") {
-    return std::cosh(x);
+    return elem_cosh(x, backend, iters);
   }
   if (name == "tanh") {
-    return std::tanh(x);
+    const double c = elem_cosh(x, backend, iters);
+    if (nearly_zero(c)) {
+      throw CalcError("tanh overflow");
+    }
+    return elem_sinh(x, backend, iters) / c;
   }
   if (name == "ln") {
-    if (x <= 0.0) {
-      throw CalcError("ln is defined for x > 0", pos);
-    }
-    return std::log(x);
+    return elem_ln(x, backend, iters);
   }
   if (name == "log10") {
-    if (x <= 0.0) {
-      throw CalcError("log10 is defined for x > 0", pos);
-    }
-    return std::log10(x);
+    return elem_ln(x, backend, iters) / elem_ln(10.0, backend, iters);
   }
   if (name == "exp") {
-    return std::exp(x);
+    return elem_exp(x, backend, iters);
   }
   if (name == "sqrt") {
-    if (x < 0.0) {
-      throw CalcError("sqrt is defined for x >= 0", pos);
-    }
-    return std::sqrt(x);
+    return elem_sqrt(x, backend, iters);
   }
   if (name == "abs") {
     return std::abs(x);
@@ -150,7 +147,7 @@ double eval_node(const Expr& n, const EvalContext& ctx) {
         throw CalcError("function '" + n.name + "' takes one argument", n.position);
       }
       const double x = eval_node(*n.args[0], ctx);
-      const double y = call_function(n.name, x, ctx.angle, n.position);
+      const double y = call_function(n.name, x, ctx.angle, ctx.backend, ctx.fun_iters, n.position);
       if (!std::isfinite(y)) {
         throw CalcError("result is not finite", n.position);
       }
