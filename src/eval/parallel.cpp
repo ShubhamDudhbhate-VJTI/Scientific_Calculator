@@ -1,6 +1,6 @@
 #include "psc/eval/parallel.h"
-#include "psc/eval/eval.h"
-#include "psc/parser/parser.h"
+#include "psc/eval/eval.hpp"
+#include "psc/parser/parser.hpp"
 #include <omp.h>
 
 namespace psc {
